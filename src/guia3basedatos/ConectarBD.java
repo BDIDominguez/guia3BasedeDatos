@@ -1,8 +1,4 @@
-/*
-modulo que conecta con la base de datos de mysql, se uso como gui el video de 
-Ing. Rene Dominguez  https://www.youtube.com/watch?v=GCZmOfhyciY 
 
- */
 package guia3basedatos;
 
 import static guia3basedatos.Guia3BaseDatos.conexion;
