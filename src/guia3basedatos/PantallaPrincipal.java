@@ -657,13 +657,23 @@ public class PantallaPrincipal extends javax.swing.JFrame {
             for (String vTabla : vTablas) {
                 jtxBaseDatos.append(" - " + vTabla + " \n ");
                 //System.out.println(" " + "desc " + vTabla);
+                // cadena = "SELECT column_name, data_type, column_default, column_key, extra FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + vTabla + "' ORDER BY COLUMN_NAME";
                 cadena = "desc " + vTabla;
                 ps = con.prepareStatement(cadena);
                 rs = ps.executeQuery();
+                ArrayList<String> vCampos = new ArrayList<>();
+                while (rs.next()) {
+                    vCampos.add(rs.getString(1).toLowerCase() + " - " + rs.getString(2).toLowerCase());
+                }
+                Collections.sort(vCampos);
+                for (String vCampo : vCampos) {
+                    jtxBaseDatos.append("---- " + vCampo + "\n");
+                }
+                /*
                 while (rs.next()){
                     String nombreCampo = rs.getString(1) + " - " + rs.getString(2);
                     jtxBaseDatos.append("-----" + nombreCampo + "\n");
-                }
+                }*/
             }
             jtxBaseDatos.setCaretPosition(0);
             jtxComandos.setBackground(Color.YELLOW);
