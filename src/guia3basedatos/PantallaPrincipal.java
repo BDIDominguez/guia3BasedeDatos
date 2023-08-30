@@ -4,7 +4,10 @@
     -- poner alguna señal visual de que el codigo se ejecuto correctamente. ya que si no es un select o algo que traiga datos no sabes si se ejecuto.
     -- cuando ejecuta una sentencia SQL tienes 2 comandos executeUpdate() y executeQuery() el update es para las sentencias que no regresan una infor como update, create etc.
         es necesario mejorar la forma en que se busca el filtro para poder agregar mas comandos a medida que los vamos aprendiendo con algun arraylist o algo por el estilo
-
+    -- Con los siguiesntes comando agregar otra textArea que contenga los nombres de las tablas y sus campos para poder manejar mejor las consultas
+    SHOW FULL TABLES FROM guia3 muestra todas las tablas de una Base de Datos
+    desc visita muestra informacion de la tabla Columna tipo de datos etc
+    
  */
 package guia3basedatos;
 
@@ -17,6 +20,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -38,6 +44,7 @@ public class PantallaPrincipal extends javax.swing.JFrame {
         actualizarCombo();
         setTitle("Sistem de Bases de Datos --- Conectado a " + conexion.getBaseDatos().toUpperCase() );
         jtxComandos.setBackground(Color.WHITE); // cambia de color el fondo del jTextArea
+        jcbBaseDatos.setSelectedItem(conexion.getBaseDatos());
     }
 
     /**
@@ -61,6 +68,8 @@ public class PantallaPrincipal extends javax.swing.JFrame {
         jcbBaseDatos = new javax.swing.JComboBox<>();
         jLabel1 = new javax.swing.JLabel();
         jButton5 = new javax.swing.JButton();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        jtxBaseDatos = new javax.swing.JTextArea();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu3 = new javax.swing.JMenu();
         jMenuItem6 = new javax.swing.JMenuItem();
@@ -77,6 +86,8 @@ public class PantallaPrincipal extends javax.swing.JFrame {
         jmSalir = new javax.swing.JMenu();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+
+        jPanel1.setBackground(new java.awt.Color(0, 153, 153));
 
         jTabla.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -140,6 +151,10 @@ public class PantallaPrincipal extends javax.swing.JFrame {
             }
         });
 
+        jtxBaseDatos.setColumns(20);
+        jtxBaseDatos.setRows(5);
+        jScrollPane3.setViewportView(jtxBaseDatos);
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -147,6 +162,8 @@ public class PantallaPrincipal extends javax.swing.JFrame {
             .addComponent(jScrollPane1)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 342, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane2)
                     .addGroup(jPanel1Layout.createSequentialGroup()
@@ -155,13 +172,13 @@ public class PantallaPrincipal extends javax.swing.JFrame {
                         .addComponent(jButton2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jButton3)
-                        .addGap(130, 130, 130)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 141, Short.MAX_VALUE)
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jcbBaseDatos, javax.swing.GroupLayout.PREFERRED_SIZE, 293, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButton5)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 119, Short.MAX_VALUE)
+                        .addGap(90, 90, 90)
                         .addComponent(jButton4)))
                 .addContainerGap())
         );
@@ -170,17 +187,20 @@ public class PantallaPrincipal extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 280, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1)
-                    .addComponent(jButton2)
-                    .addComponent(jButton3)
-                    .addComponent(jButton4)
-                    .addComponent(jcbBaseDatos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1)
-                    .addComponent(jButton5))
-                .addGap(0, 18, Short.MAX_VALUE))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 452, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jButton1)
+                            .addComponent(jButton2)
+                            .addComponent(jButton3)
+                            .addComponent(jButton4)
+                            .addComponent(jcbBaseDatos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel1)
+                            .addComponent(jButton5)))
+                    .addComponent(jScrollPane3))
+                .addContainerGap())
         );
 
         jMenu3.setText("Crear BD");
@@ -354,7 +374,7 @@ public class PantallaPrincipal extends javax.swing.JFrame {
         } catch (BadLocationException | SQLException ex) {
             //Logger.getLogger(PantallaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
             jtxComandos.setBackground(Color.RED);
-            JOptionPane.showMessageDialog(this, "No se pudo ejecutar " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "No se pudo ejecutar la sentencia \n" + ex.getMessage());
             correcto = false;
         }
         if (correcto){
@@ -417,8 +437,9 @@ public class PantallaPrincipal extends javax.swing.JFrame {
             String cadena = "use " + jcbBaseDatos.getSelectedItem();
             boolean vResp = ejecutaSQL(cadena);
             setTitle("Sistem de Bases de Datos --- Conectado a " + jcbBaseDatos.getSelectedItem().toString().toUpperCase()  );
+            conexion.setBaseDatos(jcbBaseDatos.getSelectedItem().toString());
         }
-        
+        muestraBaseDatos(); // se muestran las tablas y los campos de las mismas
         
     }//GEN-LAST:event_jcbBaseDatosItemStateChanged
 
@@ -518,9 +539,11 @@ public class PantallaPrincipal extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JTable jTabla;
     private javax.swing.JComboBox<String> jcbBaseDatos;
     private javax.swing.JMenu jmSalir;
+    private javax.swing.JTextArea jtxBaseDatos;
     private javax.swing.JTextArea jtxComandos;
     // End of variables declaration//GEN-END:variables
     private void modelarTabla(ResultSet rs) throws SQLException {
@@ -562,24 +585,9 @@ public class PantallaPrincipal extends javax.swing.JFrame {
         
     }
     
-    private void actualizarCombo() {
-        /*
-        List<String> databaseNames = new ArrayList<>();
-
-            while (resultSet.next()) {
-                String dbName = resultSet.getString(1);
-                databaseNames.add(dbName);
-            }
-
-            // Ordenar alfabéticamente los nombres de las bases de datos
-            Collections.sort(databaseNames);
-
-            // Imprimir los nombres de las bases de datos ordenados
-            for (String dbName : databaseNames) {
-                System.out.println(dbName);
-            }        
-        */        
+    private void actualizarCombo() { // Carga los nombres de las bases de Datos en el jComboBox
         try {
+            ArrayList<String> nombresDataBase = new ArrayList<>();
             PreparedStatement ps = null;
             ResultSet rs = null;
             Connection con = conexion.getcSQL();
@@ -588,16 +596,25 @@ public class PantallaPrincipal extends javax.swing.JFrame {
             rs = ps.executeQuery();
             jcbBaseDatos.removeAllItems();
             while (rs.next()) {
+                nombresDataBase.add(rs.getString(1));
+                /*
                 String bdNombre = rs.getString(1);
                 if (!bdNombre.contains("information_schema") && !bdNombre.contains("mysql") && !bdNombre.contains("performance_schema") && !bdNombre.contains("sys")) {
-                //if (!bdNombre.contains("information_schema") && !bdNombre.contains("performance_schema") ) {
+                    //if (!bdNombre.contains("information_schema") && !bdNombre.contains("performance_schema") ) {
                     jcbBaseDatos.addItem(bdNombre);
+                }*/
+            }
+            Collections.sort(nombresDataBase);
+            for (String string : nombresDataBase) {
+                if (!string.equalsIgnoreCase("information_schema") && !string.equalsIgnoreCase("mysql") && !string.equalsIgnoreCase("performance_schema") && !string.equalsIgnoreCase("sys")) {
+                    jcbBaseDatos.addItem(string);
                 }
             }
         } catch (SQLException ex) {
             // Logger.getLogger(PantallaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
             JOptionPane.showMessageDialog(null, "No se puede Actualizar el ComboBox con los nombres de Base de Datos");
         }
+        
     }
     
     private boolean ejecutaSQL(String cadena){
@@ -622,4 +639,38 @@ public class PantallaPrincipal extends javax.swing.JFrame {
         return vResp;
     }
     
+    private void muestraBaseDatos(){
+        jtxBaseDatos.setText("");
+        String cadena = "SHOW FULL TABLES FROM " + conexion.getBaseDatos();
+        try {
+            PreparedStatement ps = null;
+            ResultSet rs = null;
+            Connection con = conexion.getcSQL();
+            ps = con.prepareStatement(cadena);
+            rs = ps.executeQuery();
+            ArrayList<String> vTablas = new ArrayList<>();
+            while (rs.next()) {
+                vTablas.add(rs.getString(1));
+            }
+            //System.out.println(" " + cadena);
+            Collections.sort(vTablas);
+            for (String vTabla : vTablas) {
+                jtxBaseDatos.append(" - " + vTabla + " \n ");
+                //System.out.println(" " + "desc " + vTabla);
+                cadena = "desc " + vTabla;
+                ps = con.prepareStatement(cadena);
+                rs = ps.executeQuery();
+                while (rs.next()){
+                    String nombreCampo = rs.getString(1) + " - " + rs.getString(2);
+                    jtxBaseDatos.append("-----" + nombreCampo + "\n");
+                }
+            }
+            jtxBaseDatos.setCaretPosition(0);
+            jtxComandos.setBackground(Color.YELLOW);
+        } catch (SQLException ex) {
+            // Logger.getLogger(PantallaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
+            jtxComandos.setBackground(Color.RED);
+            JOptionPane.showMessageDialog(null, "No se pudo cargar los datos de la Base de Datos en el jTextArea \n " + cadena + "\n" + ex.getMessage());
+        }
+    }
 }

@@ -83,6 +83,10 @@ public class ConectarBD {
     public String getBaseDatos() {
         return baseDatos;
     }
+
+    public void setBaseDatos(String baseDatos) {
+        this.baseDatos = baseDatos;
+    }
     
     
 }
