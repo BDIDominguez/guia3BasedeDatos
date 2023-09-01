@@ -5,17 +5,17 @@
  */
 package guia3basedatos;
 
-
 import java.sql.SQLException;
-
 
 /**
  *
  * @author Dario
  */
 public class Guia3BaseDatos {
+
     public static ConectarBD conexion = new ConectarBD();
-     /**
+
+    /**
      * @param args the command line arguments
      * @throws java.sql.SQLException
      */
@@ -24,7 +24,7 @@ public class Guia3BaseDatos {
         Login inicio = new Login();
         inicio.setVisible(true);
         inicio.show();
-        
+
     }
-    
+
 }

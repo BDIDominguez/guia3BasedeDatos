@@ -15,13 +15,13 @@ package guia3basedatos;
 
 import static guia3basedatos.Guia3BaseDatos.conexion;
 import java.awt.Color;
+import java.awt.event.KeyEvent;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,16 +35,23 @@ import javax.swing.text.BadLocationException;
  */
 public class PantallaPrincipal extends javax.swing.JFrame {
     private boolean primierInicio = true;
+    private ArrayList<String> sentencias = new ArrayList<>();
+    private String vStrSQL;
+    private PreparedStatement ps;
+    private ResultSet rs;
+    private Connection con = conexion.getcSQL();
     
     /**
      * Creates new form PantallaPrincipal
      */
     public PantallaPrincipal() {
         initComponents();
+        sentencias = cargarComandos();
         actualizarCombo();
         setTitle("Sistem de Bases de Datos --- Conectado a " + conexion.getBaseDatos().toUpperCase() );
         jtxComandos.setBackground(Color.WHITE); // cambia de color el fondo del jTextArea
         jcbBaseDatos.setSelectedItem(conexion.getBaseDatos());
+        
     }
 
     /**
@@ -61,15 +68,16 @@ public class PantallaPrincipal extends javax.swing.JFrame {
         jTabla = new javax.swing.JTable();
         jScrollPane2 = new javax.swing.JScrollPane();
         jtxComandos = new javax.swing.JTextArea();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
+        jbtEjecutarLinea = new javax.swing.JButton();
+        jbEjecutarTodas = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
         jButton4 = new javax.swing.JButton();
         jcbBaseDatos = new javax.swing.JComboBox<>();
         jLabel1 = new javax.swing.JLabel();
-        jButton5 = new javax.swing.JButton();
+        jbtActualizaCombo = new javax.swing.JButton();
         jScrollPane3 = new javax.swing.JScrollPane();
         jtxBaseDatos = new javax.swing.JTextArea();
+        jlbResultados = new javax.swing.JLabel();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu3 = new javax.swing.JMenu();
         jMenuItem6 = new javax.swing.JMenuItem();
@@ -77,12 +85,14 @@ public class PantallaPrincipal extends javax.swing.JFrame {
         jMenuItem8 = new javax.swing.JMenuItem();
         jMenuItem9 = new javax.swing.JMenuItem();
         jMenuItem10 = new javax.swing.JMenuItem();
+        jMenuItem11 = new javax.swing.JMenuItem();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem2 = new javax.swing.JMenuItem();
         jMenuItem3 = new javax.swing.JMenuItem();
         jMenuItem4 = new javax.swing.JMenuItem();
         jMenuItem5 = new javax.swing.JMenuItem();
         jMenuItem1 = new javax.swing.JMenuItem();
+        jMenuItem12 = new javax.swing.JMenuItem();
         jmSalir = new javax.swing.JMenu();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -111,16 +121,21 @@ public class PantallaPrincipal extends javax.swing.JFrame {
         });
         jScrollPane2.setViewportView(jtxComandos);
 
-        jButton1.setText("Ejecutar Linea");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        jbtEjecutarLinea.setText("Ejecutar Linea");
+        jbtEjecutarLinea.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                jbtEjecutarLineaActionPerformed(evt);
             }
         });
 
-        jButton2.setText("Ejecutar Todas las Lineas");
+        jbEjecutarTodas.setText("Ejecutar Todas las Lineas");
 
         jButton3.setText("Borrar Comandos");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
 
         jButton4.setText("Salir");
         jButton4.addActionListener(new java.awt.event.ActionListener() {
@@ -140,14 +155,19 @@ public class PantallaPrincipal extends javax.swing.JFrame {
                 jcbBaseDatosMouseClicked(evt);
             }
         });
+        jcbBaseDatos.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jcbBaseDatosActionPerformed(evt);
+            }
+        });
 
         jLabel1.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
         jLabel1.setText("Base de Datos");
 
-        jButton5.setText("Actualizar");
-        jButton5.addActionListener(new java.awt.event.ActionListener() {
+        jbtActualizaCombo.setText("Actualizar");
+        jbtActualizaCombo.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton5ActionPerformed(evt);
+                jbtActualizaComboActionPerformed(evt);
             }
         });
 
@@ -166,20 +186,23 @@ public class PantallaPrincipal extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane2)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jButton1)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addComponent(jbtEjecutarLinea)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButton2)
+                        .addComponent(jbEjecutarTodas)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jButton3)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 141, Short.MAX_VALUE)
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jcbBaseDatos, javax.swing.GroupLayout.PREFERRED_SIZE, 293, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton5)
-                        .addGap(90, 90, 90)
-                        .addComponent(jButton4)))
+                        .addGap(18, 18, 18)
+                        .addComponent(jbtActualizaCombo)
+                        .addGap(78, 78, 78)
+                        .addComponent(jButton4))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jlbResultados)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -189,16 +212,18 @@ public class PantallaPrincipal extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 452, Short.MAX_VALUE)
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 430, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jlbResultados)
+                        .addGap(22, 22, 22)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jButton1)
-                            .addComponent(jButton2)
+                            .addComponent(jbtEjecutarLinea)
+                            .addComponent(jbEjecutarTodas)
                             .addComponent(jButton3)
                             .addComponent(jButton4)
                             .addComponent(jcbBaseDatos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel1)
-                            .addComponent(jButton5)))
+                            .addComponent(jbtActualizaCombo)))
                     .addComponent(jScrollPane3))
                 .addContainerGap())
         );
@@ -213,7 +238,7 @@ public class PantallaPrincipal extends javax.swing.JFrame {
         });
         jMenu3.add(jMenuItem6);
 
-        jMenuItem7.setText("Ej 2 - Veterinario");
+        jMenuItem7.setText("Ej 2 - Veterinaria");
         jMenuItem7.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItem7ActionPerformed(evt);
@@ -245,6 +270,14 @@ public class PantallaPrincipal extends javax.swing.JFrame {
         });
         jMenu3.add(jMenuItem10);
 
+        jMenuItem11.setText("Ej Extra - Nesfli");
+        jMenuItem11.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem11ActionPerformed(evt);
+            }
+        });
+        jMenu3.add(jMenuItem11);
+
         jMenuBar1.add(jMenu3);
 
         jMenu1.setText("Cargar BD");
@@ -268,6 +301,14 @@ public class PantallaPrincipal extends javax.swing.JFrame {
 
         jMenuItem1.setText("Ej 5 - Biblioteca");
         jMenu1.add(jMenuItem1);
+
+        jMenuItem12.setText("Ej Extra Nesfli");
+        jMenuItem12.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem12ActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItem12);
 
         jMenuBar1.add(jMenu1);
 
@@ -305,181 +346,246 @@ public class PantallaPrincipal extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuItem5ActionPerformed
 
     private void jMenuItem9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem9ActionPerformed
-        // TODO add your handling code here:
-        String tabla = "START TRANSACTION;\n"
-                + "CREATE TABLE `empleado` (`id_empleado` int NOT NULL,`dni` bigint NOT NULL,`apellido` varchar(58) NOT NULL,`nombre` varchar(58) NOT NULL,`acceso` int NOT NULL,`estado` tinyint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
-                + "CREATE TABLE `herramienta` (`id_herramienta` int NOT NULL,`nombre` varchar(60) NOT NULL,`descripcion` varchar(100) NOT NULL,`stock` int NOT NULL,`estado` tinyint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
-                + "CREATE TABLE `movimiento` (`id_movimiento` int NOT NULL,`id_empleado` int NOT NULL,`id_herramienta` int NOT NULL,`fechap` date NOT NULL,`fechad` date NOT NULL,`cantidadret` int NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
-                + "ALTER TABLE `empleado` ADD PRIMARY KEY (`id_empleado`), ADD UNIQUE KEY `dni` (`dni`);\n"
-                + "ALTER TABLE `herramienta` ADD PRIMARY KEY (`id_herramienta`);\n"
-                + "ALTER TABLE `movimiento` ADD PRIMARY KEY (`id_movimiento`), ADD KEY `id_empleado` (`id_empleado`), ADD KEY `id_herramienta` (`id_herramienta`);\n"
-                + "ALTER TABLE `empleado` MODIFY `id_empleado` int NOT NULL AUTO_INCREMENT;\n"
-                + "ALTER TABLE `herramienta` MODIFY `id_herramienta` int NOT NULL AUTO_INCREMENT;\n"
-                + "ALTER TABLE `movimiento` MODIFY `id_movimiento` int NOT NULL AUTO_INCREMENT;\n"
-                + "ALTER TABLE `movimiento` ADD CONSTRAINT `movimiento_ibfk_1` FOREIGN KEY (`id_empleado`) REFERENCES `empleado` (`id_empleado`) ON DELETE RESTRICT ON UPDATE RESTRICT, ADD CONSTRAINT `movimiento_ibfk_2` FOREIGN KEY (`id_herramienta`) REFERENCES `herramienta` (`id_herramienta`) ON DELETE RESTRICT ON UPDATE RESTRICT;\n"
+        try {
+            boolean vresp = crearBaseDatos("constructora");
+            if (vresp) {
+               String tabla = "START TRANSACTION;\n"
+                + "CREATE TABLE `constructora`.`empleado` (`id_empleado` int NOT NULL,`dni` bigint NOT NULL,`apellido` varchar(58) NOT NULL,`nombre` varchar(58) NOT NULL,`acceso` int NOT NULL,`estado` tinyint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
+                + "CREATE TABLE `constructora`.`herramienta` (`id_herramienta` int NOT NULL,`nombre` varchar(60) NOT NULL,`descripcion` varchar(100) NOT NULL,`stock` int NOT NULL,`estado` tinyint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
+                + "CREATE TABLE `constructora`.`movimiento` (`id_movimiento` int NOT NULL,`id_empleado` int NOT NULL,`id_herramienta` int NOT NULL,`fechap` date NOT NULL,`fechad` date NOT NULL,`cantidadret` int NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
+                + "ALTER TABLE `constructora`.`empleado` ADD PRIMARY KEY (`id_empleado`), ADD UNIQUE KEY `dni` (`dni`);\n"
+                + "ALTER TABLE `constructora`.`herramienta` ADD PRIMARY KEY (`id_herramienta`);\n"
+                + "ALTER TABLE `constructora`.`movimiento` ADD PRIMARY KEY (`id_movimiento`), ADD KEY `id_empleado` (`id_empleado`), ADD KEY `id_herramienta` (`id_herramienta`);\n"
+                + "ALTER TABLE `constructora`.`empleado` MODIFY `id_empleado` int NOT NULL AUTO_INCREMENT;\n"
+                + "ALTER TABLE `constructora`.`herramienta` MODIFY `id_herramienta` int NOT NULL AUTO_INCREMENT;\n"
+                + "ALTER TABLE `constructora`.`movimiento` MODIFY `id_movimiento` int NOT NULL AUTO_INCREMENT;\n"
+                + "ALTER TABLE `constructora`.`movimiento` ADD CONSTRAINT `movimiento_ibfk_1` FOREIGN KEY (`id_empleado`) REFERENCES `empleado` (`id_empleado`) ON DELETE RESTRICT ON UPDATE RESTRICT, ADD CONSTRAINT `movimiento_ibfk_2` FOREIGN KEY (`id_herramienta`) REFERENCES `herramienta` (`id_herramienta`) ON DELETE RESTRICT ON UPDATE RESTRICT;\n"
                 + "COMMIT;";
-        creaTablas(tabla);
+                creaTablas(tabla);
+            } else {
+                JOptionPane.showMessageDialog(null, "La Base de Datos ya existe, asi que no se crearan las tablas, si requieres reconstruirla, primero borra la base de datos");
+            }
+        } catch (SQLException ex) {
+            //Logger.getLogger(PantallaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(null, "A ocurrido un error \n" + ex.getMessage());
+        }
     }//GEN-LAST:event_jMenuItem9ActionPerformed
-
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
         // TODO add your handling code here:
         dispose();
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jMenuItem6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem6ActionPerformed
-        // Crearemos las Tablas del Primer Ejersicio de la Guia
-        String tablas = "START TRANSACTION;\n"
-                + "CREATE TABLE `categoria` (`idCategoria` int(11) NOT NULL,`cantPersonas` int(11) NOT NULL,`cantCamas` int(11) NOT NULL,`tipoCamas` int(11) NOT NULL,`tipoHabitacion` varchar(11) NOT NULL,`precio` double NOT NULL,`activo` tinyint(4) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;\n"
-                + "CREATE TABLE `habitacion` (`idHabitacion` int(11) NOT NULL,`idCategoria` int(1) NOT NULL,`nmroHabitacion` int(11) NOT NULL,`piso` int(11) NOT NULL,`refaccion` tinyint(4) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;\n"
-                + "CREATE TABLE `huesped` (`idHuesped` int(11) NOT NULL,`nombre` varchar(25) NOT NULL,`apellido` varchar(25) NOT NULL,`dni` bigint(20) NOT NULL,`domicilio` varchar(30) NOT NULL,`correo` varchar(30) NOT NULL,`celular` varchar(30) NOT NULL,`activo` tinyint(1) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;\n"
-                + "CREATE TABLE `reserva` (`idReserva` int(11) NOT NULL,`idHabitacion` int(11) NOT NULL,`idHuesped` int(11) NOT NULL,`fechaInicio` date NOT NULL,`fechaFin` date NOT NULL,`precioTotal` double NOT NULL,`cantPersonas` int(11) NOT NULL,`activo` tinyint(1) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;\n"
-                + "ALTER TABLE `categoria`  ADD PRIMARY KEY (`idCategoria`);\n"
-                + "ALTER TABLE `habitacion`  ADD PRIMARY KEY (`idHabitacion`),  ADD KEY `idCategoria` (`idCategoria`);\n"
-                + "ALTER TABLE `huesped` ADD PRIMARY KEY (`idHuesped`), ADD UNIQUE KEY `dni` (`dni`);\n"
-                + "ALTER TABLE `reserva` ADD PRIMARY KEY (`idReserva`), ADD UNIQUE KEY `idHabitacion` (`idHabitacion`), ADD KEY `idHuesped` (`idHuesped`);\n"
-                + "ALTER TABLE `categoria` MODIFY `idCategoria` int(11) NOT NULL AUTO_INCREMENT;\n"
-                + "ALTER TABLE `habitacion` MODIFY `idHabitacion` int(11) NOT NULL AUTO_INCREMENT;\n"
-                + "ALTER TABLE `huesped` MODIFY `idHuesped` int(11) NOT NULL AUTO_INCREMENT;\n"
-                + "ALTER TABLE `categoria` ADD CONSTRAINT `categoria_ibfk_1` FOREIGN KEY (`idCategoria`) REFERENCES `habitacion` (`idCategoria`);\n"
-                + "ALTER TABLE `habitacion`ADD CONSTRAINT `habitacion_ibfk_1` FOREIGN KEY (`idHabitacion`) REFERENCES `reserva` (`idHabitacion`);\n"
-                + "ALTER TABLE `reserva` ADD CONSTRAINT `reserva_ibfk_1` FOREIGN KEY (`idHuesped`) REFERENCES `huesped` (`idHuesped`);\n"
-                + "COMMIT;";
-        creaTablas(tablas);
+        try {
+            boolean vresp = crearBaseDatos("hotel");
+            if (vresp) {
+                String tablas = "START TRANSACTION;\n"
+                        + "CREATE TABLE `hotel`.`categoria` (`idCategoria` int(11) NOT NULL,`cantPersonas` int(11) NOT NULL,`cantCamas` int(11) NOT NULL,`tipoCamas` int(11) NOT NULL,`tipoHabitacion` varchar(11) NOT NULL,`precio` double NOT NULL,`activo` tinyint(4) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;\n"
+                        + "CREATE TABLE `hotel`.`habitacion` (`idHabitacion` int(11) NOT NULL,`idCategoria` int(1) NOT NULL,`nmroHabitacion` int(11) NOT NULL,`piso` int(11) NOT NULL,`refaccion` tinyint(4) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;\n"
+                        + "CREATE TABLE `hotel`.`huesped` (`idHuesped` int(11) NOT NULL,`nombre` varchar(25) NOT NULL,`apellido` varchar(25) NOT NULL,`dni` bigint(20) NOT NULL,`domicilio` varchar(30) NOT NULL,`correo` varchar(30) NOT NULL,`celular` varchar(30) NOT NULL,`activo` tinyint(1) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;\n"
+                        + "CREATE TABLE `hotel`.`reserva` (`idReserva` int(11) NOT NULL,`idHabitacion` int(11) NOT NULL,`idHuesped` int(11) NOT NULL,`fechaInicio` date NOT NULL,`fechaFin` date NOT NULL,`precioTotal` double NOT NULL,`cantPersonas` int(11) NOT NULL,`activo` tinyint(1) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;\n"
+                        + "ALTER TABLE `hotel`.`categoria`  ADD PRIMARY KEY (`idCategoria`);\n"
+                        + "ALTER TABLE `hotel`.`habitacion`  ADD PRIMARY KEY (`idHabitacion`),  ADD KEY `idCategoria` (`idCategoria`);\n"
+                        + "ALTER TABLE `hotel`.`huesped` ADD PRIMARY KEY (`idHuesped`), ADD UNIQUE KEY `dni` (`dni`);\n"
+                        + "ALTER TABLE `hotel`.`reserva` ADD PRIMARY KEY (`idReserva`), ADD UNIQUE KEY `idHabitacion` (`idHabitacion`), ADD KEY `idHuesped` (`idHuesped`);\n"
+                        + "ALTER TABLE `hotel`.`categoria` MODIFY `idCategoria` int(11) NOT NULL AUTO_INCREMENT;\n"
+                        + "ALTER TABLE `hotel`.`habitacion` MODIFY `idHabitacion` int(11) NOT NULL AUTO_INCREMENT;\n"
+                        + "ALTER TABLE `hotel`.`huesped` MODIFY `idHuesped` int(11) NOT NULL AUTO_INCREMENT;\n"
+                        + "ALTER TABLE `hotel`.`categoria` ADD CONSTRAINT `categoria_ibfk_1` FOREIGN KEY (`idCategoria`) REFERENCES `habitacion` (`idCategoria`);\n"
+                        + "ALTER TABLE `hotel`.`habitacion`ADD CONSTRAINT `habitacion_ibfk_1` FOREIGN KEY (`idHabitacion`) REFERENCES `reserva` (`idHabitacion`);\n"
+                        + "ALTER TABLE `hotel`.`reserva` ADD CONSTRAINT `reserva_ibfk_1` FOREIGN KEY (`idHuesped`) REFERENCES `huesped` (`idHuesped`);\n"
+                        + "COMMIT;";
+                creaTablas(tablas);
+            } else {
+                JOptionPane.showMessageDialog(null, "La Base de Datos ya existe, asi que no se crearan las tablas, si requieres reconstruirla, primero borra la base de datos");
+            }
+        } catch (SQLException ex) {
+            //Logger.getLogger(PantallaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(null, "A ocurrido un error \n" + vStrSQL + ex.getMessage());
+        }
+        
     }//GEN-LAST:event_jMenuItem6ActionPerformed
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        boolean correcto = true,actualizar = false; // Correcto para saber si se ejecuto bien la sentencia SQL y Actualizar para saber si es necesario actualizar el jTable
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        try {
-            //con esto obtenemos la linea completa en la que se encuentra el cursor
-            int pos = jtxComandos.getCaretPosition(); // obtiene la posicion del cursor contando los caracteres y saltos de linea digamos que si tiene 10 letras en dos filas regresa 11
-            int lineIndex = jtxComandos.getLineOfOffset(pos);  // por medio de la cantidad de caracteres nos regresa el numero de linea que empieza en 0
-            int lineStartOffset = jtxComandos.getLineStartOffset(lineIndex); // indica la cantidad inicial del esa linea
-            int lineEndOffset = jtxComandos.getLineEndOffset(lineIndex); // indica la cantidad al final de la linea
-            String sql = jtxComandos.getText(lineStartOffset, lineEndOffset - lineStartOffset); // extrae todo entre el inicio y fin de linea de la fila en la que se encuentra el cursor
-            //System.out.println(lineText);
-            // ahora solo tenemos que ejecutarla!!!
-          
-            Connection con = conexion.getcSQL();
-            ps = con.prepareStatement(sql);
-            if (sql.toLowerCase().contains("insert") || sql.toLowerCase().contains("update") || sql.toLowerCase().contains("delete") || sql.toLowerCase().contains("use") || sql.toLowerCase().contains("create database") ){ // (INSERT, UPDATE, DELETE) executeQuery cuando es una de esas acciones sino el otro Execute para los demas
-                ps.executeUpdate();
-            }else{                
-                rs = ps.executeQuery();
-                // System.out.println("Se ejecuto la consulta");
-                actualizar = true;
-            }
-            jtxComandos.setBackground(Color.YELLOW);
-        } catch (BadLocationException | SQLException ex) {
-            //Logger.getLogger(PantallaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
-            jtxComandos.setBackground(Color.RED);
-            JOptionPane.showMessageDialog(this, "No se pudo ejecutar la sentencia \n" + ex.getMessage());
-            correcto = false;
-        }
-        if (correcto){
-            if (actualizar){ 
-              try {
-                    modelarTabla(rs); // Metodo que actualize el jTable con el resultado de la tabla.
-                } catch (SQLException ex) {
-                    Logger.getLogger(PantallaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        }
-    }//GEN-LAST:event_jButton1ActionPerformed
+    private void jbtEjecutarLineaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtEjecutarLineaActionPerformed
+        botonEjecutarUnaLinea();
+    }//GEN-LAST:event_jbtEjecutarLineaActionPerformed
 
     private void jMenuItem7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem7ActionPerformed
-        String tabla = "START TRANSACTION;\n"
-                + "CREATE TABLE `cliente` (`idCliente` int NOT NULL,`dni` int NOT NULL,`nombre` varchar(30) NOT NULL,`apellido` varchar(30) NOT NULL,`telefono` bigint NOT NULL,`direccion` varchar(50) NOT NULL,`contactoAlternativo` bigint NOT NULL,`activo` tinyint(1) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
-                + "CREATE TABLE `mascota` (`idMascota` int NOT NULL,`alias` varchar(30) NOT NULL,`sexo` varchar(30) NOT NULL,`especie` varchar(30) NOT NULL,`raza` varchar(30) NOT NULL,`colorPelo` varchar(50) NOT NULL,`fechaNac` date NOT NULL,`idCliente` int NOT NULL,`activo` tinyint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
-                + "CREATE TABLE `tratamiento` (`idTratamiento` int NOT NULL,`descripcion` varchar(70) NOT NULL,`medicamento` varchar(50) NOT NULL,`importe` double NOT NULL,`tipoTratamiento` varchar(30) NOT NULL,`activo` tinyint(1) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
-                + "CREATE TABLE `visita` (`idVisita` int NOT NULL,`idMascota` int NOT NULL,`fechaVisita` date NOT NULL,`detalle` varchar(50) NOT NULL,`peso` double NOT NULL,`idTratamiento` int NOT NULL,`activo` tinyint(1) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
-                + "ALTER TABLE `cliente` ADD PRIMARY KEY (`idCliente`), ADD KEY `dni` (`dni`);\n"
-                + "ALTER TABLE `mascota` ADD PRIMARY KEY (`idMascota`), ADD KEY `idCliente` (`idCliente`);\n"
-                + "ALTER TABLE `tratamiento` ADD PRIMARY KEY (`idTratamiento`);\n"
-                + "ALTER TABLE `visita` ADD PRIMARY KEY (`idVisita`), ADD KEY `idMascota` (`idMascota`), ADD KEY `idTratamiento` (`idTratamiento`);\n"
-                + "ALTER TABLE `cliente` MODIFY `idCliente` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;\n"
-                + "ALTER TABLE `mascota` MODIFY `idMascota` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;\n"
-                + "ALTER TABLE `tratamiento` MODIFY `idTratamiento` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;\n"
-                + "ALTER TABLE `visita` MODIFY `idVisita` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;\n"
-                + "ALTER TABLE `mascota` ADD CONSTRAINT `mascota_ibfk_1` FOREIGN KEY (`idCliente`) REFERENCES `cliente` (`idCliente`) ON DELETE RESTRICT ON UPDATE RESTRICT;\n"
-                + "ALTER TABLE `tratamiento` ADD CONSTRAINT `tratamiento_ibfk_1` FOREIGN KEY (`idTratamiento`) REFERENCES `visita` (`idTratamiento`) ON DELETE RESTRICT ON UPDATE RESTRICT;\n"
-                + "ALTER TABLE `visita` ADD CONSTRAINT `visita_ibfk_1` FOREIGN KEY (`idMascota`) REFERENCES `mascota` (`idMascota`) ON DELETE RESTRICT ON UPDATE RESTRICT;\n"
-                + "COMMIT;";
-        creaTablas(tabla);
+        try {
+            boolean vresp = crearBaseDatos("veterinaria");
+            if (vresp) {
+                String tabla = "START TRANSACTION;\n"
+                        + "CREATE TABLE `veterinaria`.`cliente` (`idCliente` int NOT NULL,`dni` int NOT NULL,`nombre` varchar(30) NOT NULL,`apellido` varchar(30) NOT NULL,`telefono` bigint NOT NULL,`direccion` varchar(50) NOT NULL,`contactoAlternativo` bigint NOT NULL,`activo` tinyint(1) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
+                        + "CREATE TABLE `veterinaria`.`mascota` (`idMascota` int NOT NULL,`alias` varchar(30) NOT NULL,`sexo` varchar(30) NOT NULL,`especie` varchar(30) NOT NULL,`raza` varchar(30) NOT NULL,`colorPelo` varchar(50) NOT NULL,`fechaNac` date NOT NULL,`idCliente` int NOT NULL,`activo` tinyint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
+                        + "CREATE TABLE `veterinaria`.`tratamiento` (`idTratamiento` int NOT NULL,`descripcion` varchar(70) NOT NULL,`medicamento` varchar(50) NOT NULL,`importe` double NOT NULL,`tipoTratamiento` varchar(30) NOT NULL,`activo` tinyint(1) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
+                        + "CREATE TABLE `veterinaria`.`visita` (`idVisita` int NOT NULL,`idMascota` int NOT NULL,`fechaVisita` date NOT NULL,`detalle` varchar(50) NOT NULL,`peso` double NOT NULL,`idTratamiento` int NOT NULL,`activo` tinyint(1) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
+                        + "ALTER TABLE `veterinaria`.`cliente` ADD PRIMARY KEY (`idCliente`), ADD KEY `dni` (`dni`);\n"
+                        + "ALTER TABLE `veterinaria`.`mascota` ADD PRIMARY KEY (`idMascota`), ADD KEY `idCliente` (`idCliente`);\n"
+                        + "ALTER TABLE `veterinaria`.`tratamiento` ADD PRIMARY KEY (`idTratamiento`);\n"
+                        + "ALTER TABLE `veterinaria`.`visita` ADD PRIMARY KEY (`idVisita`), ADD KEY `idMascota` (`idMascota`), ADD KEY `idTratamiento` (`idTratamiento`);\n"
+                        + "ALTER TABLE `veterinaria`.`cliente` MODIFY `idCliente` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;\n"
+                        + "ALTER TABLE `veterinaria`.`mascota` MODIFY `idMascota` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;\n"
+                        + "ALTER TABLE `veterinaria`.`tratamiento` MODIFY `idTratamiento` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;\n"
+                        + "ALTER TABLE `veterinaria`.`visita` MODIFY `idVisita` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;\n"
+                        + "ALTER TABLE `veterinaria`.`mascota` ADD CONSTRAINT `mascota_ibfk_1` FOREIGN KEY (`idCliente`) REFERENCES `cliente` (`idCliente`) ON DELETE RESTRICT ON UPDATE RESTRICT;\n"
+                        + "ALTER TABLE `veterinaria`.`tratamiento` ADD CONSTRAINT `tratamiento_ibfk_1` FOREIGN KEY (`idTratamiento`) REFERENCES `visita` (`idTratamiento`) ON DELETE RESTRICT ON UPDATE RESTRICT;\n"
+                        + "ALTER TABLE `veterinaria`.`visita` ADD CONSTRAINT `visita_ibfk_1` FOREIGN KEY (`idMascota`) REFERENCES `mascota` (`idMascota`) ON DELETE RESTRICT ON UPDATE RESTRICT;\n"
+                        + "COMMIT;";
+                creaTablas(tabla);
+            } else {
+                JOptionPane.showMessageDialog(null, "La Base de Datos ya existe, asi que no se crearan las tablas, si requieres reconstruirla, primero borra la base de datos");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PantallaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }//GEN-LAST:event_jMenuItem7ActionPerformed
 
     private void jMenuItem8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem8ActionPerformed
-        String tabla = "START TRANSACTION;\n"
-                + "CREATE TABLE `cliente` (`idCliente` int NOT NULL,`nombre` varchar(40) NOT NULL,`direccion` varchar(40) NOT NULL,`correo` varchar(40) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
-                + "CREATE TABLE `detalle` (`idPedido` int NOT NULL,`idProducto` int NOT NULL,`cantidad` double NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
-                + "CREATE TABLE `pedido` (`idPedido` int NOT NULL,`fecha` date NOT NULL,`idCliente` int NOT NULL,`estado` tinyint(1) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
-                + "CREATE TABLE `producto` (`idProducto` int NOT NULL,`nombre` varchar(40) NOT NULL,`descripcion` varchar(40) NOT NULL,`precio` double NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
-                + "ALTER TABLE `cliente` ADD PRIMARY KEY (`idCliente`);\n"
-                + "ALTER TABLE `detalle` ADD PRIMARY KEY (`idPedido`), ADD KEY `idProducto` (`idProducto`);\n"
-                + "ALTER TABLE `pedido` ADD PRIMARY KEY (`idPedido`), ADD KEY `idCliente` (`idCliente`);\n"
-                + "ALTER TABLE `producto` ADD PRIMARY KEY (`idProducto`);\n"
-                + "ALTER TABLE `cliente` MODIFY `idCliente` int NOT NULL AUTO_INCREMENT;\n"
-                + "ALTER TABLE `detalle` MODIFY `idPedido` int NOT NULL AUTO_INCREMENT;\n"
-                + "ALTER TABLE `pedido` MODIFY `idPedido` int NOT NULL AUTO_INCREMENT;\n"
-                + "ALTER TABLE `producto` MODIFY `idProducto` int NOT NULL AUTO_INCREMENT;\n"
-                + "ALTER TABLE `detalle` ADD CONSTRAINT `detalle_ibfk_1` FOREIGN KEY (`idProducto`) REFERENCES `producto` (`idProducto`) ON DELETE RESTRICT ON UPDATE RESTRICT;\n"
-                + "ALTER TABLE `pedido`ADD CONSTRAINT `pedido_ibfk_2` FOREIGN KEY (`idPedido`) REFERENCES `detalle` (`idPedido`) ON DELETE RESTRICT ON UPDATE RESTRICT, ADD CONSTRAINT `pedido_ibfk_3` FOREIGN KEY (`idCliente`) REFERENCES `cliente` (`idCliente`) ON DELETE RESTRICT ON UPDATE RESTRICT;\n"
+        try {
+            boolean vresp = crearBaseDatos("pedidos");
+            if (vresp) {
+                String tabla = "START TRANSACTION;\n"
+                + "CREATE TABLE `pedidos`.`cliente` (`idCliente` int NOT NULL,`nombre` varchar(40) NOT NULL,`direccion` varchar(40) NOT NULL,`correo` varchar(40) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
+                + "CREATE TABLE `pedidos`.`detalle` (`idPedido` int NOT NULL,`idProducto` int NOT NULL,`cantidad` double NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
+                + "CREATE TABLE `pedidos`.`pedido` (`idPedido` int NOT NULL,`fecha` date NOT NULL,`idCliente` int NOT NULL,`estado` tinyint(1) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
+                + "CREATE TABLE `pedidos`.`producto` (`idProducto` int NOT NULL,`nombre` varchar(40) NOT NULL,`descripcion` varchar(40) NOT NULL,`precio` double NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
+                + "ALTER TABLE `pedidos`.`cliente` ADD PRIMARY KEY (`idCliente`);\n"
+                + "ALTER TABLE `pedidos`.`detalle` ADD PRIMARY KEY (`idPedido`), ADD KEY `idProducto` (`idProducto`);\n"
+                + "ALTER TABLE `pedidos`.`pedido` ADD PRIMARY KEY (`idPedido`), ADD KEY `idCliente` (`idCliente`);\n"
+                + "ALTER TABLE `pedidos`.`producto` ADD PRIMARY KEY (`idProducto`);\n"
+                + "ALTER TABLE `pedidos`.`cliente` MODIFY `idCliente` int NOT NULL AUTO_INCREMENT;\n"
+                + "ALTER TABLE `pedidos`.`detalle` MODIFY `idPedido` int NOT NULL AUTO_INCREMENT;\n"
+                + "ALTER TABLE `pedidos`.`pedido` MODIFY `idPedido` int NOT NULL AUTO_INCREMENT;\n"
+                + "ALTER TABLE `pedidos`.`producto` MODIFY `idProducto` int NOT NULL AUTO_INCREMENT;\n"
+                + "ALTER TABLE `pedidos`.`detalle` ADD CONSTRAINT `detalle_ibfk_1` FOREIGN KEY (`idProducto`) REFERENCES `producto` (`idProducto`) ON DELETE RESTRICT ON UPDATE RESTRICT;\n"
+                + "ALTER TABLE `pedidos`.`pedido`ADD CONSTRAINT `pedido_ibfk_2` FOREIGN KEY (`idPedido`) REFERENCES `detalle` (`idPedido`) ON DELETE RESTRICT ON UPDATE RESTRICT, ADD CONSTRAINT `pedido_ibfk_3` FOREIGN KEY (`idCliente`) REFERENCES `cliente` (`idCliente`) ON DELETE RESTRICT ON UPDATE RESTRICT;\n"
                 + "COMMIT;";
-        creaTablas(tabla);
+                creaTablas(tabla);
+            } else {
+                JOptionPane.showMessageDialog(null, "La Base de Datos ya existe, asi que no se crearan las tablas, si requieres reconstruirla, primero borra la base de datos");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PantallaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }//GEN-LAST:event_jMenuItem8ActionPerformed
 
     private void jcbBaseDatosItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jcbBaseDatosItemStateChanged
         // cuando el usuario selecciona otra base de datos se debe indicar a la conexion que se cambio de base de datos con el comando USE + nombre de la base de datos
         if (primierInicio){
             primierInicio = false;
-        }else{
-            String cadena = "use " + jcbBaseDatos.getSelectedItem();
-            boolean vResp = ejecutaSQL(cadena);
-            setTitle("Sistem de Bases de Datos --- Conectado a " + jcbBaseDatos.getSelectedItem().toString().toUpperCase()  );
-            conexion.setBaseDatos(jcbBaseDatos.getSelectedItem().toString());
+            //muestraBaseDatos(); // se muestran las tablas y los campos de las mismas
+        } else {
+            if (jcbBaseDatos.getSelectedItem() != null) {
+                String baseDatos = jcbBaseDatos.getSelectedItem().toString();
+                //System.out.println(" La base de Datos seleccionada es  " + baseDatos);
+                String cadena = "use " + baseDatos;
+                boolean vResp = ejecutaSQL(cadena);
+                setTitle("Sistem de Bases de Datos --- Conectado a " + baseDatos);
+                conexion.setBaseDatos(baseDatos);
+                muestraBaseDatos(); // se muestran las tablas y los campos de las mismas
+            }
         }
-        muestraBaseDatos(); // se muestran las tablas y los campos de las mismas
-        
     }//GEN-LAST:event_jcbBaseDatosItemStateChanged
 
     private void jcbBaseDatosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jcbBaseDatosMouseClicked
         
     }//GEN-LAST:event_jcbBaseDatosMouseClicked
 
-    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
-        // Se actualiza el contenido del combo con las tablas existentes en el servidor
-        String tablaActual = jcbBaseDatos.getSelectedItem().toString();
-        primierInicio = true;
-        actualizarCombo();
-        jcbBaseDatos.setSelectedItem(tablaActual);
-    }//GEN-LAST:event_jButton5ActionPerformed
+    private void jbtActualizaComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtActualizaComboActionPerformed
+        if (jcbBaseDatos.getSelectedItem() != null) {
+            String tablaActual = jcbBaseDatos.getSelectedItem().toString();
+            //primierInicio = true;
+            actualizarCombo();
+            jcbBaseDatos.setSelectedItem(tablaActual);
+        }else{
+            JOptionPane.showMessageDialog(null, "El Combo Base de Datos esta Vacio");
+        }
+    }//GEN-LAST:event_jbtActualizaComboActionPerformed
 
     private void jMenuItem10ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem10ActionPerformed
         // TODO add your handling code here:
-        String tabla = "START TRANSACTION;\n"
-                + "CREATE TABLE `comentarios` (`idcomentario` int NOT NULL,`idlibro` int NOT NULL,`idmiembro` int NOT NULL,`comentario` text NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
-                + "CREATE TABLE `libro` (`idlibro` int NOT NULL,`titulo` varchar(40) NOT NULL,`autor` varchar(40) NOT NULL,`genero` varchar(40) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
-                + "CREATE TABLE `miembros` (`idmienbro` int NOT NULL,`nombre` varchar(40) NOT NULL, `direccion` varchar(40) NOT NULL,`telefono` int NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
-                + "CREATE TABLE `prestamos` (`idprestamo` int NOT NULL,`idlibro` int NOT NULL,`idmiembro` int NOT NULL,`fechap` date NOT NULL,`fechad` date NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
-                + "ALTER TABLE `comentarios` ADD PRIMARY KEY (`idcomentario`),ADD KEY `idlibro` (`idlibro`),ADD KEY `idmiembro` (`idmiembro`);\n"
-                + "ALTER TABLE `libro` ADD PRIMARY KEY (`idlibro`);\n"
-                + "ALTER TABLE `miembros` ADD PRIMARY KEY (`idmienbro`);\n"
-                + "ALTER TABLE `prestamos` ADD PRIMARY KEY (`idprestamo`), ADD KEY `idlibro` (`idlibro`), ADD KEY `idmiembro` (`idmiembro`);\n"
-                + "ALTER TABLE `comentarios` MODIFY `idcomentario` int NOT NULL AUTO_INCREMENT;\n"
-                + "ALTER TABLE `libro` MODIFY `idlibro` int NOT NULL AUTO_INCREMENT;\n"
-                + "ALTER TABLE `miembros` MODIFY `idmienbro` int NOT NULL AUTO_INCREMENT;\n"
-                + "ALTER TABLE `prestamos` MODIFY `idprestamo` int NOT NULL AUTO_INCREMENT;\n"
-                + "ALTER TABLE `comentarios` ADD CONSTRAINT `comentarios_ibfk_1` FOREIGN KEY (`idmiembro`) REFERENCES `miembros` (`idmienbro`) ON DELETE RESTRICT ON UPDATE RESTRICT, ADD CONSTRAINT `comentarios_ibfk_2` FOREIGN KEY (`idlibro`) REFERENCES `libro` (`idlibro`) ON DELETE RESTRICT ON UPDATE RESTRICT;\n"
-                + "ALTER TABLE `prestamos` ADD CONSTRAINT `prestamos_ibfk_1` FOREIGN KEY (`idmiembro`) REFERENCES `miembros` (`idmienbro`) ON DELETE RESTRICT ON UPDATE RESTRICT, ADD CONSTRAINT `prestamos_ibfk_2` FOREIGN KEY (`idlibro`) REFERENCES `libro` (`idlibro`) ON DELETE RESTRICT ON UPDATE RESTRICT;\n"
+        try {
+            boolean vresp = crearBaseDatos("biblioteca");
+            if (vresp) {
+                String tabla = "START TRANSACTION;\n"
+                + "CREATE TABLE `biblioteca`.`comentarios` (`idcomentario` int NOT NULL,`idlibro` int NOT NULL,`idmiembro` int NOT NULL,`comentario` text NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
+                + "CREATE TABLE `biblioteca`.`libro` (`idlibro` int NOT NULL,`titulo` varchar(40) NOT NULL,`autor` varchar(40) NOT NULL,`genero` varchar(40) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
+                + "CREATE TABLE `biblioteca`.`miembros` (`idmienbro` int NOT NULL,`nombre` varchar(40) NOT NULL, `direccion` varchar(40) NOT NULL,`telefono` int NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
+                + "CREATE TABLE `biblioteca`.`prestamos` (`idprestamo` int NOT NULL,`idlibro` int NOT NULL,`idmiembro` int NOT NULL,`fechap` date NOT NULL,`fechad` date NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;\n"
+                + "ALTER TABLE `biblioteca`.`comentarios` ADD PRIMARY KEY (`idcomentario`),ADD KEY `idlibro` (`idlibro`),ADD KEY `idmiembro` (`idmiembro`);\n"
+                + "ALTER TABLE `biblioteca`.`libro` ADD PRIMARY KEY (`idlibro`);\n"
+                + "ALTER TABLE `biblioteca`.`miembros` ADD PRIMARY KEY (`idmienbro`);\n"
+                + "ALTER TABLE `biblioteca`.`prestamos` ADD PRIMARY KEY (`idprestamo`), ADD KEY `idlibro` (`idlibro`), ADD KEY `idmiembro` (`idmiembro`);\n"
+                + "ALTER TABLE `biblioteca`.`comentarios` MODIFY `idcomentario` int NOT NULL AUTO_INCREMENT;\n"
+                + "ALTER TABLE `biblioteca`.`libro` MODIFY `idlibro` int NOT NULL AUTO_INCREMENT;\n"
+                + "ALTER TABLE `biblioteca`.`miembros` MODIFY `idmienbro` int NOT NULL AUTO_INCREMENT;\n"
+                + "ALTER TABLE `biblioteca`.`prestamos` MODIFY `idprestamo` int NOT NULL AUTO_INCREMENT;\n"
+                + "ALTER TABLE `biblioteca`.`comentarios` ADD CONSTRAINT `comentarios_ibfk_1` FOREIGN KEY (`idmiembro`) REFERENCES `miembros` (`idmienbro`) ON DELETE RESTRICT ON UPDATE RESTRICT, ADD CONSTRAINT `comentarios_ibfk_2` FOREIGN KEY (`idlibro`) REFERENCES `libro` (`idlibro`) ON DELETE RESTRICT ON UPDATE RESTRICT;\n"
+                + "ALTER TABLE `biblioteca`.`prestamos` ADD CONSTRAINT `prestamos_ibfk_1` FOREIGN KEY (`idmiembro`) REFERENCES `miembros` (`idmienbro`) ON DELETE RESTRICT ON UPDATE RESTRICT, ADD CONSTRAINT `prestamos_ibfk_2` FOREIGN KEY (`idlibro`) REFERENCES `libro` (`idlibro`) ON DELETE RESTRICT ON UPDATE RESTRICT;\n"
                 + "COMMIT;";
-        creaTablas(tabla);
+                creaTablas(tabla);
+            } else {
+                JOptionPane.showMessageDialog(null, "La Base de Datos ya existe, asi que no se crearan las tablas, si requieres reconstruirla, primero borra la base de datos");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PantallaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }//GEN-LAST:event_jMenuItem10ActionPerformed
 
     private void jtxComandosKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jtxComandosKeyPressed
-        // TODO add your handling code here:
         jtxComandos.setBackground(Color.WHITE);
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER && evt.isControlDown()) {
+            //JOptionPane.showMessageDialog(null, "Ctrl + Enter pressed");
+            botonEjecutarUnaLinea();
+        }
     }//GEN-LAST:event_jtxComandosKeyPressed
+
+    private void jMenuItem11ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem11ActionPerformed
+        // TODO add your handling code here:
+        try {
+            boolean vresp = crearBaseDatos("nesfli");
+            if (vresp) {
+                String tabla = "CREATE TABLE `nesfli`.`seriespeliculas` (`id_contenido` INT NOT NULL AUTO_INCREMENT, `titulo` VARCHAR(50) NULL, `formato` VARCHAR(50) NULL, `creador` VARCHAR(50) NULL, `estreno` INT NULL, `puntaje` INT NULL, PRIMARY KEY (`id_contenido`));";
+                creaTablas(tabla);
+            } else {
+                JOptionPane.showMessageDialog(null, "La Base de Datos ya existe, asi que no se crearan las tablas, si requieres reconstruirla, primero borra la base de datos");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PantallaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_jMenuItem11ActionPerformed
+
+    private void jMenuItem12ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem12ActionPerformed
+        // TODO add your handling code here:
+        vStrSQL = "insert into nesfli.seriespeliculas (titulo,formato,creador,estreno,puntaje) values \n"
+                + "	('El planeta de los simios','Novela','Pierre Boulle',1963,9.8),\n"
+                + "    ('El planeta de los simios','Pelicula','Franklin Schaffner',1968,7.9),\n"
+                + "    ('Escape del planeta de los simios','Pelicula','Arthur P. Jacobs',1971,6.5),\n"
+                + "    ('Consquista del Planeta de los simios','Pelicula','Arthur P. Jacobs',1972,6.7),\n"
+                + "    ('La batalla por el planeta de los simios','Pelicula','Arthur P. Jacobs',1973,8.6),\n"
+                + "    ('El planeta de los simios','Serie','Mort Abraham',1974,7),\n"
+                + "    ('Regreso al planeta de los simios','Serie','DePatie-Freleng Enterprises',1975,7.4),\n"
+                + "    ('El planeta de los simios','Comic','El planeta de los simios franquicia',1975,8.2),\n"
+                + "    ('El planeta de los simios','Pelicula','Tim Burton',2001,8),\n"
+                + "    ('El planeta de los simios: evolucion','Pelicula','Rupert Wyatt',2011,7.8),\n"
+                + "    ('El planeta de los simios: confrontacion','Pelicula','Matt Reeves',2014,9),\n"
+                + "    ('La guerra del planeta de los simios','Pelicula','Matt Reeves',2017,9.5),\n"
+                + "    ('Transformers G 1','Comic','Franklin Schaffner',1980,7.9),\n"
+                + "    ('Transformers: Ka guerra por Cybertrom - Reino', 'Serie','Jeremy Stuart',2021,9.5);";
+        boolean vresp = ejecutaSQL(vStrSQL);
+        if (!vresp){
+            
+        }
+
+    }//GEN-LAST:event_jMenuItem12ActionPerformed
+
+    private void jcbBaseDatosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jcbBaseDatosActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jcbBaseDatosActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        jtxComandos.setText("");
+    }//GEN-LAST:event_jButton3ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -517,17 +623,16 @@ public class PantallaPrincipal extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
-    private javax.swing.JButton jButton5;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu3;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem10;
+    private javax.swing.JMenuItem jMenuItem11;
+    private javax.swing.JMenuItem jMenuItem12;
     private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JMenuItem jMenuItem4;
@@ -541,7 +646,11 @@ public class PantallaPrincipal extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JTable jTabla;
+    private javax.swing.JButton jbEjecutarTodas;
+    private javax.swing.JButton jbtActualizaCombo;
+    private javax.swing.JButton jbtEjecutarLinea;
     private javax.swing.JComboBox<String> jcbBaseDatos;
+    private javax.swing.JLabel jlbResultados;
     private javax.swing.JMenu jmSalir;
     private javax.swing.JTextArea jtxBaseDatos;
     private javax.swing.JTextArea jtxComandos;
@@ -565,11 +674,8 @@ public class PantallaPrincipal extends javax.swing.JFrame {
 
     }
     private void creaTablas(String tablas){
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        Connection con = conexion.getcSQL();
-        String[] sentencias = tablas.split(";");
-        for (String sql : sentencias) {
+        String[] nombreTabla = tablas.split(";");
+        for (String sql : nombreTabla) {
             if (!sql.trim().isEmpty()) {
                 try {
                     ps = con.prepareStatement(sql);
@@ -588,27 +694,22 @@ public class PantallaPrincipal extends javax.swing.JFrame {
     private void actualizarCombo() { // Carga los nombres de las bases de Datos en el jComboBox
         try {
             ArrayList<String> nombresDataBase = new ArrayList<>();
-            PreparedStatement ps = null;
-            ResultSet rs = null;
-            Connection con = conexion.getcSQL();
-            String cadena = "show databases";
-            ps = con.prepareStatement(cadena);
-            rs = ps.executeQuery();
             jcbBaseDatos.removeAllItems();
-            while (rs.next()) {
-                nombresDataBase.add(rs.getString(1));
-                /*
-                String bdNombre = rs.getString(1);
-                if (!bdNombre.contains("information_schema") && !bdNombre.contains("mysql") && !bdNombre.contains("performance_schema") && !bdNombre.contains("sys")) {
-                    //if (!bdNombre.contains("information_schema") && !bdNombre.contains("performance_schema") ) {
-                    jcbBaseDatos.addItem(bdNombre);
-                }*/
-            }
-            Collections.sort(nombresDataBase);
-            for (String string : nombresDataBase) {
-                if (!string.equalsIgnoreCase("information_schema") && !string.equalsIgnoreCase("mysql") && !string.equalsIgnoreCase("performance_schema") && !string.equalsIgnoreCase("sys")) {
-                    jcbBaseDatos.addItem(string);
+            boolean vresp = ejecutaSQL("show databases");
+            if (vresp) {
+                while (rs.next()) {
+                    nombresDataBase.add(rs.getString(1));
                 }
+                Collections.sort(nombresDataBase);
+                for (String string : nombresDataBase) {
+                    if (!string.equalsIgnoreCase("information_schema") && !string.equalsIgnoreCase("mysql") && !string.equalsIgnoreCase("performance_schema") && !string.equalsIgnoreCase("sys")) {
+                        jcbBaseDatos.addItem(string);
+                        // System.out.println(" Cargando " + string);
+                    }
+                }
+                primierInicio = true;
+            }else{
+                JOptionPane.showMessageDialog(null,"No se puede consultar las Bases de Datos");
             }
         } catch (SQLException ex) {
             // Logger.getLogger(PantallaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
@@ -618,24 +719,23 @@ public class PantallaPrincipal extends javax.swing.JFrame {
     }
     
     private boolean ejecutaSQL(String cadena){
-        boolean vResp = false;
+        boolean vResp ;
+        vStrSQL = cadena;
         try {
-            PreparedStatement ps = null;
-            ResultSet rs = null;
-            Connection con = conexion.getcSQL();
             ps = con.prepareStatement(cadena);
-            //rs = ps.executeQuery();
-            ps.executeUpdate();
+            if (esUpdate(cadena)){
+                ps.executeUpdate();
+            }else{
+                rs = ps.executeQuery();
+            }
             vResp = true;
             jtxComandos.setBackground(Color.YELLOW);
         } catch (SQLException ex) {
             // Logger.getLogger(PantallaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
             jtxComandos.setBackground(Color.RED);
-            JOptionPane.showMessageDialog(null, "No se pudo ejecutar el comando \n " + cadena + " \n "+ ex.getMessage());
+            JOptionPane.showMessageDialog(null, "No se pudo ejecutar el comando \n " + vStrSQL + " \n "+ ex.getMessage());
             vResp = false;
-            
         }
-        
         return vResp;
     }
     
@@ -643,9 +743,6 @@ public class PantallaPrincipal extends javax.swing.JFrame {
         jtxBaseDatos.setText("");
         String cadena = "SHOW FULL TABLES FROM " + conexion.getBaseDatos();
         try {
-            PreparedStatement ps = null;
-            ResultSet rs = null;
-            Connection con = conexion.getcSQL();
             ps = con.prepareStatement(cadena);
             rs = ps.executeQuery();
             ArrayList<String> vTablas = new ArrayList<>();
@@ -682,5 +779,85 @@ public class PantallaPrincipal extends javax.swing.JFrame {
             jtxComandos.setBackground(Color.RED);
             JOptionPane.showMessageDialog(null, "No se pudo cargar los datos de la Base de Datos en el jTextArea \n " + cadena + "\n" + ex.getMessage());
         }
+    }
+    
+    private boolean esUpdate(String cadena){
+        boolean vresp = false;
+        for (String sent : sentencias) {
+            vresp = cadena.contains(sent);
+            if (vresp){
+                break;
+            }
+        }
+        return vresp;
+    }
+    
+    private ArrayList cargarComandos(){
+        ArrayList<String> sentencias = new ArrayList<>();
+        sentencias.add("insert"); // palabras claves para usar en un executeUpdate()
+        sentencias.add("update");
+        sentencias.add("delete");
+        sentencias.add("create");
+        sentencias.add("alter");
+        sentencias.add("drop");
+        sentencias.add("use");
+        return sentencias;
+    }
+    
+    private boolean crearBaseDatos(String base) throws SQLException{
+        boolean vresp = false;
+        vStrSQL = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?;";
+        ps = con.prepareStatement(vStrSQL);
+        ps.setString(1, base);
+        System.out.println(" se ejecuta la consulta de existencia de base datos");
+        rs = ps.executeQuery();
+        
+        
+        if (rs.next()){
+            //JOptionPane.showMessageDialog(null, "La base de Datos " + base + " ya existe");
+            System.out.println(" Se confirma que si existe ");
+        }else{
+            System.out.println(" no existe se tratara de crearla ");
+            vStrSQL = "create database " + base;
+            ps = con.prepareStatement(vStrSQL);
+            ps.executeUpdate();
+            vresp = true;
+        }
+        return vresp;
+    }
+    
+    private void botonEjecutarUnaLinea(){
+        long inicio = System.currentTimeMillis();
+        boolean correcto; // Correcto para saber si se ejecuto bien la sentencia SQL 
+        try {
+            //con esto obtenemos la linea completa en la que se encuentra el cursor
+            int pos = jtxComandos.getCaretPosition(); // obtiene la posicion del cursor contando los caracteres y saltos de linea digamos que si tiene 10 letras en dos filas regresa 11
+            int lineIndex = jtxComandos.getLineOfOffset(pos);  // por medio de la cantidad de caracteres nos regresa el numero de linea que empieza en 0
+            int lineStartOffset = jtxComandos.getLineStartOffset(lineIndex); // indica la cantidad inicial del esa linea
+            int lineEndOffset = jtxComandos.getLineEndOffset(lineIndex); // indica la cantidad al final de la linea
+            vStrSQL = jtxComandos.getText(lineStartOffset, lineEndOffset - lineStartOffset); // extrae todo entre el inicio y fin de linea de la fila en la que se encuentra el cursor
+            correcto = ejecutaSQL(vStrSQL);
+            jtxComandos.setBackground(Color.YELLOW);
+        } catch (BadLocationException ex) {
+            jtxComandos.setBackground(Color.CYAN);
+            JOptionPane.showMessageDialog(this, "No se pudo extraer la linea de comandos \n" + ex.getMessage());
+            correcto = false;
+        }
+        if (correcto){
+            if (!esUpdate(vStrSQL)){ 
+              try {
+                    modelarTabla(rs); // Metodo que actualize el jTable con el resultado de la tabla.
+                } catch (SQLException ex) {
+                    Logger.getLogger(PantallaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+        calculaTiempo(inicio);
+    }
+    
+    private void calculaTiempo(long inicio){
+        int reg = jTabla.getRowCount();
+        long fin = System.currentTimeMillis();
+        jlbResultados.setText("Cantidad de Registros: " + reg + " en un tiempo de " + (fin - inicio) + " ms");
     }
 }
