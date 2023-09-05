@@ -24,6 +24,7 @@ public class Guia3BaseDatos {
         Login inicio = new Login();
         inicio.setVisible(true);
         inicio.show();
+        // faltaria cerrar la conexion pero no lo he implementado todavia
 
     }
 
